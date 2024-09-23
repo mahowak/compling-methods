@@ -1,0 +1,161 @@
+---
+title: "R - Lecture 2"
+author: "Kyle Mahowald"
+date: "9/24/24"
+output: html_document
+---
+
+## This is a header
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+## Try it Yourself: Tidyverse Review
+
+Load english.csv to get our lexical decision time data. RTms is the reaction time in milliseconds (one thousandth of a second).
+
+Familiarity is the average familiarity rating for each word. AgeSubject comes in two categories: "young" and "old". Each RTms is the average reaction time (over 30 subjects) for that word.
+
+Using filter() and select() and arrange() and %in% [look up how to use arrange and %in% with ?arrange], get the RT data for "puck", "gong", and "treat" and show it with just the following columns: Word, RTms, AgeSubject, Familiarity. 
+
+
+```{r}
+library(tidyverse)
+d = read_csv("english.csv")
+d$RTms = exp(d$RTlexdec)
+#TODO: your code here
+```
+
+## Try it Yourself: Histogram Practice
+
+Make a histogram of just the RTms data from the "young" subjects. Now just the "old".
+
+```{r}
+```
+
+## Some more important tidyverse functions
+
+### group_by and summarise
+
+```{r}
+```
+
+
+### group_by and mutate
+
+```{r}
+```
+
+# Learning ggplot
+
+```{r}
+# scatterplot: geom_point()
+ggplot(d, aes(x=Familiarity, y=RTms, colour=AgeSubject)) +
+  geom_point() 
+```
+
+```{r}
+# violin plot (powerful but violin plots are not so useful in many cases)
+ggplot(d, aes(x=RTms, y=Familiarity, fill=AgeSubject)) +
+  geom_violin() 
+```
+
+```{r}
+# plot that makes points....and then add lines
+ggplot(d, aes(x=RTms, y=Familiarity, colour=AgeSubject, group=AgeSubject)) +
+  geom_line() + 
+  geom_point()  
+```
+
+```{r}
+# histogram
+(ggplot(d, aes(x=RTms, fill=AgeSubject)) +
+  geom_histogram() )
+```
+
+```{r}
+# now do the colored histogram by word
+ggplot(d, aes(x=RTms, fill=AgeSubject)) +
+  geom_histogram() +
+  theme_classic(12)
+
+head(d)
+```
+
+# Try it Yourself: ggplot
+
+Make a scatterplot showing RTms "as a function of" WrittenFrequency.
+
+Then do the same with just "young" subjects. Compare the plots.
+
+```{r}
+```
+
+# Try it Yourself: A harder ggplot
+
+Take smallset and plot RTms vs. Familiarity, but use geom_text() [look it up!] to put the Words onto the plots. 
+
+```{r}
+smallset = sample_n(d, 60)
+```
+
+# Rearranging DataFrames
+
+Let's look at words that are especially different between young and old people. Let's do it by creating a data frame with these columns: Word,Young,Old where the values are RTms.
+
+Do it for just nouns!
+
+```{r}
+```
+
+# Starting some summary stats: Understanding mean, median, and standard deviation (sd)
+
+```{r}
+x = c(1, 2, 3, 4, 5)
+y = c(1, 2, 3, 4, 100000000)
+```
+
+# Uniform and normal
+
+```{r}
+u = runif(10000, 0, 1)
+n = rnorm(10000, 0, 1)
+
+d = tibble(unif=u, norm=n)
+```
+
+# Make some different histograms by taking the mean of the uniform distribution. 
+
+```{r}
+```
+
+# Exercise
+
+Take 10000 draws from a uniform distribution [0, 1]. Find the 2.5 percentile, 50th percentile, 97.5th percentile empirically (by computing it). That is: find the value for which 2.5% of the data is less than that value. Then for 50% (this is the median!), etc. 
+
+Now do the same for a normal distribution. Keep the mean 0, but play around with the standard deviation (try 1, 2, 3). How does this affect things?
+
+```{r}
+```
