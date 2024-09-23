@@ -1,0 +1,78 @@
+---
+title: "Problem Set 5"
+author: "Kyle Mahowald"
+date: "2024-09-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Analyzing the dative alternation
+
+In this second part of the problem set, you will analyze the dative alternation in English.
+
+The dative alternation refers to the fact that English has two options for conveying benefactive sentences: "Alex gave Terry the cake." or "Alex gave the cake to Terry." We call the first of these the NP realization (because there are two noun phrases after the verb). We call the second of these the PP realization, because there is a prepositional phrase.
+
+It turns out that there is rich and fascinating statistical structure in which of these choices we make when we are speaking! 
+
+The data set dative.csv contains some data on which choice we make. First, some terminology:
+
+The Recipient (abbreviated Rec in column names in our data set) in these sentences is the person who gets something. In the above, it's Terry since Terry gets the cake. The "theme" is the thing that gets given: the cake.
+
+The dependent variable is RealizationOfRecipient, and it is NP for the NP case and PP for the PP case.
+
+To learn about the other variables, read pages 21-22 [here](https://cran.r-project.org/web/packages/languageR/languageR.pdf).
+
+
+
+### 1
+
+Read in the data set dative.csv.
+
+```{r}
+# TODO
+```
+
+### 2
+
+Is this data tidy? Why or why not?
+
+TODO
+
+### 3
+
+Let's think about LengthOfTheme and LengthOfRecipient (the number of words in the theme and recipient, respectively).
+
+In one line of code, show the proportion of the time that LengthOfTheme is longer than LengthOfRecipient.
+
+```{r}
+# TODO
+```
+
+### 4
+
+Using group_by() and summarise(), make two new data frames: one showing the proportion of the time the RealizationOfRecipient is "NP" as a function of the LengthOfTheme, another as a function of LengthOfRecipient. Make a plot for each, where the proportion of the time RealizationOfRecipient is "NP" is the value on the y-axis. 
+
+```{r}
+# TODO
+```
+
+
+### 5
+
+Describe what you learned from the graphs above. Why do you think we see these patterns? 
+
+### 6
+
+Now, find the proportion of the time each verb is realized as NP, by grouping on Verb. Rank them in order of most NP-realized to least NP-realized verbs.
+
+```{r}
+# TODO
+```
+
+#### OPTIONAL: Advanced Option
+
+Give an analysis that you find convincing that explores the effect of Modality (written or spoken) on the RealizationOfRecipient.
+
+Pick 1 or more variables (columns) that we did not discuss. For each one (or, if you want to get fancy, for combinations of them!) do some basic analyses of the sort we did above. And make some graphs. Based on the graphs and analyses, (a) describe the variables and what they mean (giving examples). And (b) discuss your analysis and conclusions. 
