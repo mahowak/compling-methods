@@ -7,6 +7,8 @@ output: html_document
 
 ## This is a header
 
+Here is some text.
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -39,20 +41,32 @@ Load english.csv to get our lexical decision time data. RTms is the reaction tim
 Familiarity is the average familiarity rating for each word. AgeSubject comes in two categories: "young" and "old". Each RTms is the average reaction time (over 30 subjects) for that word.
 
 Using filter() and select() and arrange() and %in% [look up how to use arrange and %in% with ?arrange], get the RT data for "puck", "gong", and "treat" and show it with just the following columns: Word, RTms, AgeSubject, Familiarity. 
-
+Sort in the order of RTms.
 
 ```{r}
 library(tidyverse)
 d = read_csv("english.csv")
 d$RTms = exp(d$RTlexdec)
+#filter(d, Word == "puck" |
+#         Word == "gong" | 
+#         Word == "treat")
+
+filtered_d = filter(d, Word %in% c("puck", "gong", "treat")) %>%
+  select(Word, RTms, AgeSubject, Familiarity) %>%
+  arrange(RTms)
 #TODO: your code here
+
+filtered_d
 ```
 
 ## Try it Yourself: Histogram Practice
 
-Make a histogram of just the RTms data from the "young" subjects. Now just the "old".
+1. Make a histogram of just the RTms data from the "young" subjects.
+2. Now just the "old".
 
 ```{r}
+young = filter(d, AgeSubject == "young")
+hist(young$RTms)
 ```
 
 ## Some more important tidyverse functions
@@ -60,12 +74,35 @@ Make a histogram of just the RTms data from the "young" subjects. Now just the "
 ### group_by and summarise
 
 ```{r}
+mean(d$RTms)
+
+group_by(d, AgeSubject, WordCategory) %>%
+  summarise(meanRT = mean(RTms),
+            medianRT = median(RTms),
+            maxRT = max(RTms),
+            minRT = min(RTms),
+            meanWrittenFrequency = mean(WrittenFrequency)) %>%
+  select(AgeSubject, WordCategory, meanWrittenFrequency)
+
+
 ```
 
 
 ### group_by and mutate
 
+ - summarise: return fewer rows than original
+ - mutate: return same number of rows as original, with new column
+
 ```{r}
+group_by(d, AgeSubject) %>%
+  mutate(meanRT.byage = mean(RTms),
+         diff.from.age.mean = RTms - meanRT.byage) %>%
+  select(Word, RTms, meanRT.byage, diff.from.age.mean) %>%
+  arrange(-diff.from.age.mean)
+
+group_by(d, AgeSubject) %>%
+  mutate(meanRT.byage = mean(RTms)) %>%
+  select(AgeSubject, meanRT.byage)
 ```
 
 # Learning ggplot
@@ -78,14 +115,14 @@ ggplot(d, aes(x=Familiarity, y=RTms, colour=AgeSubject)) +
 
 ```{r}
 # violin plot (powerful but violin plots are not so useful in many cases)
-ggplot(d, aes(x=RTms, y=Familiarity, fill=AgeSubject)) +
+ggplot(d, aes(x=Familiarity, y=RTms, colour=AgeSubject, fill=AgeSubject)) +
   geom_violin() 
 ```
 
 ```{r}
 # plot that makes points....and then add lines
-ggplot(d, aes(x=RTms, y=Familiarity, colour=AgeSubject, group=AgeSubject)) +
-  geom_line() + 
+ggplot(d, aes(x=Familiarity, y=RTms, colour=AgeSubject, fill=AgeSubject, group=Word)) +
+  geom_line(colour="red") + 
   geom_point()  
 ```
 
@@ -102,15 +139,23 @@ ggplot(d, aes(x=RTms, fill=AgeSubject)) +
   theme_classic(12)
 
 head(d)
+
+read_csv("english.csv") %>%
+  mutate(RTms = exp(RTlexdec)) %>%
+  ggplot(aes(x=RTms, fill=AgeSubject)) +
+  geom_histogram() +
+  theme_classic(12)
 ```
 
 # Try it Yourself: ggplot
 
 Make a scatterplot showing RTms "as a function of" WrittenFrequency.
 
-Then do the same with just "young" subjects. Compare the plots.
+Then do the same with just "young" subjects (or use color to separate them). Compare the plots.
 
 ```{r}
+ggplot(d, aes(x=WrittenFrequency, y=RTms, colour=AgeSubject)) +
+  geom_point(colour="brick")
 ```
 
 # Try it Yourself: A harder ggplot
@@ -119,43 +164,10 @@ Take smallset and plot RTms vs. Familiarity, but use geom_text() [look it up!] t
 
 ```{r}
 smallset = sample_n(d, 60)
+ggplot(d, aes(x=WrittenFrequency, y=RTms, colour=AgeSubject, label=Word)) +
+  geom_text()
 ```
-
-# Rearranging DataFrames
-
-Let's look at words that are especially different between young and old people. Let's do it by creating a data frame with these columns: Word,Young,Old where the values are RTms.
-
-Do it for just nouns!
-
+ exploring mystery:
 ```{r}
-```
-
-# Starting some summary stats: Understanding mean, median, and standard deviation (sd)
-
-```{r}
-x = c(1, 2, 3, 4, 5)
-y = c(1, 2, 3, 4, 100000000)
-```
-
-# Uniform and normal
-
-```{r}
-u = runif(10000, 0, 1)
-n = rnorm(10000, 0, 1)
-
-d = tibble(unif=u, norm=n)
-```
-
-# Make some different histograms by taking the mean of the uniform distribution. 
-
-```{r}
-```
-
-# Exercise
-
-Take 10000 draws from a uniform distribution [0, 1]. Find the 2.5 percentile, 50th percentile, 97.5th percentile empirically (by computing it). That is: find the value for which 2.5% of the data is less than that value. Then for 50% (this is the median!), etc. 
-
-Now do the same for a normal distribution. Keep the mean 0, but play around with the standard deviation (try 1, 2, 3). How does this affect things?
-
-```{r}
+filter(d, Word == "jape"| Word == "skiff")
 ```
