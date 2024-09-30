@@ -13,11 +13,40 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Read in our english.csv data. Use summarize to create a data frame in which you find the average RTms for each Word (averaging over young and old subjects).
 
-Now plot the relationship between LengthInLetters and the mean RTms. Use facet_grid() [Google or use the question mark] to create separate facets for WordCategory. 
+Now plot the relationship between LengthInLetters and the mean RTms. 
 
 ```{r}
+library(tidyverse)
 d = read_csv("english.csv")
 d$RTms = exp(d$RTlexdec)
+
+mean(d$RTms)
+
+# how many RTms per each word
+table(d$Word)
+
+d.grouped = group_by(d, Word, LengthInLetters, WordCategory) %>%
+  summarise(meanRT = mean(RTms))
+
+table(d.grouped$Word)
+
+ggplot(d.grouped, aes(x=LengthInLetters, y=meanRT)) +
+  geom_point()
+
+ggplot(d.grouped, aes(x=LengthInLetters, y=meanRT)) +
+  geom_jitter()
+
+ggplot(d.grouped, aes(x=LengthInLetters, y=meanRT)) +
+  geom_boxplot()
+
+ggplot(d.grouped, aes(x=as.factor(LengthInLetters), y=meanRT, colour=as.factor(LengthInLetters))) +
+  geom_boxplot() +
+  geom_jitter(alpha=.1) +
+  theme_classic(12) +
+  xlab("How many letters is the word?") +
+  ylab("mean reaction time in milliseconds") +
+  facet_wrap(~WordCategory)
+
 
 ```
 
@@ -33,6 +62,24 @@ pivot_wider()
 pivot_longer()
 
 ```{r}
+
+filter(d, Word == "deer")
+
+
+
+select(d, Word, AgeSubject, RTms, WordCategory, CorrectLexdec) %>%
+  filter(WordCategory == "N") %>%
+  pivot_wider(names_from = c(AgeSubject),
+              values_from = c(RTms, CorrectLexdec)) %>%
+  mutate(AgeDiff = RTms_old - RTms_young) %>%
+  arrange(-AgeDiff) %>%
+  ggplot(aes(x=CorrectLexdec_young, y=RTms_young)) + geom_jitter() +
+  geom_smooth(method=lm, colour="red") + 
+  geom_smooth() +
+  xlab("Number correct out of 30") + 
+  ylab("mean reaction time in ms for young subjects") +
+  theme_classic(18)
+  
 ```
 
 # How different is our data from random?
@@ -41,9 +88,59 @@ pivot_longer()
 ggplot(d, aes(x=WrittenFrequency, y=RTms, colour=AgeSubject)) +
   geom_point()
 
+x = runif(1000)
+y = runif(1000)
+plot(x, y)
+
 group_by(d, AgeSubject) %>%
   summarise(m=mean(RTms))
 ```
+
+# The mean as a model
+
+```{r}
+d.1 = d %>%
+  group_by(AgeSubject) %>%
+  mutate(Prediction1 = mean(RTms))
+
+d.1 = d.1 %>%
+  ungroup() %>%
+  mutate(Prediction0 = mean(RTms))
+
+d.1 = d.1 %>%
+  mutate(Error0 = RTms - Prediction0,
+         Error1 = RTms - Prediction1)
+
+# Mean Absolute Error
+mean(abs(d.1$Error0))
+mean(abs(d.1$Error1))
+
+# Sum Squared Error
+sum((d.1$Error0)^2) > sum((d.1$Error1)^2)
+
+
+a = NULL
+
+for (i in 1:1000) {
+  d.1$RandomAge = sample(d.1$AgeSubject)
+d.1 = d.1 %>%
+  group_by(RandomAge) %>%
+  mutate(PredictionRandom = mean(RTms),
+         ErrorRandom = RTms - PredictionRandom)
+
+a = append(a, sum((d.1$ErrorRandom)^2) > sum((d.1$Error1)^2))
+
+}
+mean(a)
+
+# permutation test
+
+
+# sum((d.1$ErrorRandom)^2) > sum((d.1$Error0)^2)
+
+
+```
+
 
 # Starting some summary stats: Understanding mean, median, and standard deviation (sd)
 
@@ -59,10 +156,6 @@ On average, how far away is a value from the mean?
 ```{r}
 ```
 
-# The mean as a model
-
-```{r}
-```
 
 # Computing the error of our estimate
 
