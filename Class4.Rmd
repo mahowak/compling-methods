@@ -1,0 +1,353 @@
+---
+title: "Class3"
+author: "Kyle Mahowald"
+date: "2024-09-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# A new dataset!
+
+
+```{r}
+library(tidyverse)
+d = read_csv("english.csv")
+d$RTms = exp(d$RTlexdec)
+```
+
+
+# Starting some summary stats: Understanding mean, median, and standard deviation (sd)
+
+```{r}
+x = c(1, 2, 3, 4, 5)
+y = c(1, 2, 3, 4, 100000000)
+```
+
+# Standard deviation
+
+On average, how far away is a value from the mean?
+
+```{r}
+```
+
+
+# Computing the standard error
+
+
+```{r}
+```
+
+# Mean as a model
+
+Task: for a random word, predict the RTms.
+
+Idea: Use the mean.
+
+```{r}
+```
+
+How wrong will we be!? (I.e.: what is the error?)
+
+```{r}
+d$Residual = d$RTms - d$Prediction
+sum(d$Residual) # this is close to 0 because we have a mixture of negatives and positives
+sum(abs(d$Residual)) # absolute total error
+sum(abs(d$Residual))/nrow(d)
+```
+
+How wrong will we be (squared)?
+
+Instead of absolute difference, look at squared difference.
+
+Mean Squared Error is a crucial quantity for linear regression and statistics.
+
+```{r}
+d$SquareDiff = d$Residual * d$Residual
+hist(d$SquareDiff)
+sum(d$SquareDiff)
+sum(d$SquareDiff)/nrow(d)
+```
+
+# Building up to Regression
+
+Our goal is to predict the RTms based on Familiarity using a line.
+
+```{r}
+
+# Goal: predict RTs
+mean(d$RTms)
+d$mean.prediction = mean(d$RTms)
+sum((d$RTms - d$mean.prediction)**2)
+
+# fit a line
+ggplot(d, aes(x=Familiarity,RTms)) + geom_point() 
+
+
+# equation of a line: y = mx + b
+# a function that maps from x to y
+# take x (random number) as an input
+# spit out a PREDICTED y value as output
+ggplot(d, aes(x=Familiarity,RTms)) + geom_point() +
+    geom_abline(intercept = 1,
+              slope = 1)
+
+# sum squared error when we use the mean to make 
+# our predictions
+sum((d$RTms - d$mean.prediction)**2)
+
+generate.prediction.from.line <- function(x) {
+  y = 1000 + -1 * x
+  return(y)
+}
+
+d$prediction.line = generate.prediction.from.line(d$Familiarity)
+
+# plot predictions of the line 
+ggplot(d, aes(x=Familiarity,RTms)) + geom_point() +
+  geom_abline(intercept = 1000,
+              slope = -1,
+              colour="red") +
+  geom_point(data=d, aes(x=Familiarity, y=prediction.line), colour="red")
+```
+
+```{r}
+# sum squared error when we use the mean to make 
+# our predictions
+sum((d$RTms - d$prediction.line)**2)
+
+ggplot(d, aes(x=Familiarity,RTms)) + geom_point() +
+  geom_abline(intercept = 12.5,
+              slope = 1/10,
+              colour="red") +
+  geom_point(data=d, aes(x=Familiarity, y=prediction.line), colour="red") +
+  geom_point(data=d, aes(x=Familiarity, y=mean.prediction), colour="darkgreen")
+```
+
+```{r}
+###########
+generate.prediction.from.some.line <- function(x, intercept, slope) {
+  y = intercept + slope * x
+  return(y)
+}
+
+sum((d$RTms - d$prediction.line)**2)
+
+d$prediction.line.2 = generate.prediction.from.some.line(d$Familiarity, 12, 1/10)
+sum((d$RTms - d$prediction.line.2)**2)
+
+d$prediction.line.3 = generate.prediction.from.some.line(d$Familiarity, 12, 1/11)
+sum((d$RTms - d$prediction.line.3)**2)
+
+ggplot(d, aes(x=Familiarity,RTms)) + geom_point() +
+    geom_abline(intercept = 12.5,
+              slope = 1/10,
+              colour="red") +
+  geom_point(data=d, aes(x=Familiarity, y=prediction.line), colour="red") +
+  geom_point(data=d, aes(x=Familiarity, y=mean.prediction), colour="darkgreen") +
+  geom_point(data=d, aes(x=Familiarity, y=prediction.line.3), colour="blue")  +
+  geom_abline(intercept = 12,
+              slope = 1/11,
+              colour="blue") +
+  geom_abline(intercept = mean(d$RTms),
+              slope = 0,
+              colour="darkgreen")
+```
+
+
+
+# automate the processs of finding the line
+# that minimizes the sum of the squared error
+```{r}
+try.for.int = seq(5, 20, .1)
+try.for.slope = seq(0, 1, .5)  
+
+best.sum.squared.error = Inf
+best.int = NULL
+best.slope = NULL
+for (i in try.for.int) {
+  for (j in try.for.slope) {
+    d$try.prediction = generate.prediction.from.some.line(d$Familiarity, i, j)
+    sum.squared.error = sum((d$RTms - d$try.prediction)**2)
+    if (sum.squared.error < best.sum.squared.error) {
+      best.sum.squared.error = sum.squared.error
+      best.int = i
+      best.slope = j
+    }
+  }
+}
+
+best.int
+best.slope
+
+# add these best values onto our plot in orange
+d$prediction.line.best = generate.prediction.from.some.line(
+  d$Familiarity, best.int, best.slope)
+
+ggplot(d, aes(x=Familiarity,RTms)) + geom_point() +
+  geom_abline(intercept = 12.5,
+              slope = 1/10,
+              colour="red") +
+  geom_point(data=d, aes(x=Familiarity, y=prediction.line), colour="red") +
+  geom_point(data=d, aes(x=Familiarity, y=mean.prediction), colour="darkgreen") +
+  geom_point(data=d, aes(x=Familiarity, y=prediction.line.3), colour="blue")  +
+  geom_point(data=d, aes(x=Familiarity, y=prediction.line.best), colour="orange")  +
+  geom_abline(intercept = 12,
+              slope = 1/11,
+              colour="blue") +
+  geom_abline(intercept = mean(d$RTms),
+              slope = 0,
+              colour="darkgreen") + 
+  geom_abline(intercept = best.int,
+              slope = best.slope,
+              colour="orange") +
+  geom_smooth(method=lm, se=F)
+```
+
+```{r}
+l = lm(data=d, RTms ~ Familiarity)
+summary(l)
+
+d$Predictions.L = predict(l)
+d$Residuals = d$Predictions.L - d$RTms
+sd(d$Residuals)
+```
+
+
+
+## Predict reaction time based on Familiarity
+
+```{r width=3, height=3}
+d$RT = d$RTms
+ggplot(d, aes(x=Familiarity, y=RT)) + geom_point()
+
+# l = lm(data=d, thing_predicted ~ 1 + predictor1)
+l = lm(data=d, RT ~ 1 + Familiarity)
+
+ggplot(d, aes(x=Familiarity, y=RT)) + geom_point() +
+  geom_abline(intercept=876, slope=-.44, colour="red")
+
+d$Prediction.Manual = 876 - 44 * d$Familiarity
+
+filter(d, Word == "dog") %>%
+  select(Word, Familiarity, RT, Prediction)
+
+d$Prediction.Automatic = predict(l)
+
+filter(d, Word == "dog") %>%
+  select(Word, Familiarity, RT, Prediction.Manual, Prediction.Automatic)
+```
+
+# What is R-squared? Proportion of variance explained
+
+```{r}
+sse.l = sum((d$Prediction.Manual - d$RT)^2)
+
+sse.mean.as.model = sum((mean(d$RT) - d$RT)^2)
+
+print(1 - sse.l/sse.mean.as.model)
+
+summary(l)
+```
+
+# Play around with a scrambled version of the data
+
+```{r width=3, height=3}
+d$RT.random = sample(d$RT)
+l.random = lm(data=d, RT.random ~ Familiarity)
+ggplot(d, aes(x=Familiarity, y=RT.random)) + geom_point()
+l.random
+
+d$Prediction.Random = predict(l.random)
+
+sse.l.random = sum((d$Prediction.Random - d$RT.random)^2)
+sse.mean.as.model.random = sum((mean(d$RT.random) - d$RT.random)^2)
+
+1 - sse.l.random/sse.mean.as.model.random
+
+```
+
+```{r}
+d$RT.Duplicated = d$RT
+l.duplicated = lm(data=d, RT ~ RT.Duplicated)
+l.duplicated
+ggplot(d, aes(x=RT.Duplicated, y=RT)) + geom_point()
+
+d$Perfect.Predictions = 0 + d$RT.Duplicated 
+
+sum((d$Perfect.Predictions - d$RT)^2)
+
+summary(l.duplicated)
+```
+
+# Introducing the regression lm()
+
+```{r}
+l = (lm(data=d, RT ~ Familiarity))
+
+d$Prediction = predict(l)
+d$Residuals = d$RT - d$Prediction
+summary(d$Residuals)
+
+hist(d$Residuals)
+```
+
+
+# What is the Std.Error? Measures uncertainty 
+
+```{r}
+l = lm(data=d, RT ~ Familiarity)
+d$Resid = residuals(l)
+
+# formula for standard error on the coefficient
+sqrt(sum(d$Resid^2)/((nrow(d) - 2) * sum((d$Familiarity - mean(d$Familiarity))^2)))
+
+a = NULL
+for (i in 1:1000) {
+  d.new = sample_n(d, nrow(d), replace=T)
+  l = lm(data=d.new, RT ~ Familiarity)
+  fam.coef = coef(l)[2]
+  a = append(a, fam.coef)
+}
+
+hist(a, breaks=50)
+sd(a)
+summary(l)
+
+-43.577/sd(a)
+
+a
+
+hist(rnorm(1000, 0, 1))
+```
+
+# Now scramble the values and see what the coefficient is
+
+```{r}
+```
+
+# Now using a continuous variable as a predictor (WrittenFrequency), see how well you can predict RT
+
+```{r}
+
+```
+
+# Exercise: Which is better at predicting RT? Familiarity or WrittenFrequency?
+
+```{r}
+ggplot(d, aes(x=WrittenFrequency, y=RT)) + geom_point()
+
+summary(lm(data=d, RT ~ Familiarity))
+summary(lm(data=d, RT ~ WrittenFrequency))
+
+l.written = lm(data=d, RT ~ WrittenFrequency)
+d$resid = residuals(l.written)
+
+ggplot(d, aes(x=WrittenFrequency, resid)) + geom_point()
+```
+
+
+
