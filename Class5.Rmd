@@ -1,0 +1,133 @@
+---
+title: "Class5"
+author: "Kyle Mahowald"
+date: "2024-10-03"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+d = read_csv("english.csv")
+d$RTms = exp(d$RTlexdec)
+```
+
+# Computing the standard error of the mean
+
+First: what does runif() do?
+
+For you to try: play with "samples_drawn"....how is the standard error of the mean affected?
+
+```{r}
+# uniform draws
+samples_drawn = 10
+a = tibble(i=rep(1:100000, samples_drawn))
+a = mutate(a, value = runif(n(), 0, 10))
+
+filter(a, i == 1)
+
+# take the means
+a.means = group_by(a, i) %>%
+  summarize(mean.unif = mean(value),
+            sd.unif = sd(value))
+
+ggplot(a.means, aes(x=mean.unif)) + geom_histogram()
+sd(a.means$mean.unif)
+
+
+mean(a.means$sd.unif)/sqrt(samples_drawn)
+
+```
+
+# Standard error of the mean for RTms
+
+
+```{r}
+sd(d$RTms)/sqrt(nrow(d))
+```
+
+# Introducing the regression lm()
+
+```{r}
+d$RT = d$RTms
+l = (lm(data=d, RT ~ Familiarity))
+
+d$Prediction = predict(l)
+d$Residuals = d$RT - d$Prediction
+summary(d$Residuals)
+
+hist(d$Residuals)
+```
+
+
+# What is the Std.Error in our regression? 
+
+Intuitively, if we sample over and over, how close would we be to the value?
+
+```{r}
+l = lm(data=d, RT ~ Familiarity)
+summary(l)
+d$Resid = residuals(l)
+
+# formula for standard error on the coefficient
+sqrt(sum(d$Resid^2)/((nrow(d) - 2) * sum((d$Familiarity - mean(d$Familiarity))^2)))
+
+# bootstrapping
+a = NULL
+for (i in 1:1000) {
+  d.new = sample_n(d, nrow(d), replace=T)
+  l = lm(data=d.new, RT ~ Familiarity)
+  fam.coef = coef(l)[2]
+  a = append(a, fam.coef)
+}
+
+hist(a, breaks=50)
+sd(a)
+summary(l)
+
+-43.577/sd(a)
+
+a
+
+hist(rnorm(1000, 0, 1))
+```
+
+# Now scramble the values and see what the coefficient is
+
+```{r}
+```
+
+# Now using a continuous variable as a predictor (WrittenFrequency), see how well you can predict RT
+
+```{r}
+
+```
+
+# What is a p-value? 
+
+The probability, under the "null hypothesis", of observing a value as extreme as what we observed.
+
+```{r}
+```
+
+# Exercise: Which is better at predicting RT? Familiarity or WrittenFrequency?
+
+```{r}
+ggplot(d, aes(x=WrittenFrequency, y=RT)) + geom_point()
+
+summary(lm(data=d, RT ~ Familiarity))
+summary(lm(data=d, RT ~ WrittenFrequency))
+
+l.written = lm(data=d, RT ~ WrittenFrequency)
+d$resid = residuals(l.written)
+
+ggplot(d, aes(x=WrittenFrequency, resid)) + geom_point()
+```
+
+
+
