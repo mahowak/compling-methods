@@ -10,7 +10,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-# A new dataset!
 
 
 ```{r}
@@ -25,6 +24,11 @@ d$RTms = exp(d$RTlexdec)
 ```{r}
 x = c(1, 2, 3, 4, 5)
 y = c(1, 2, 3, 4, 100000000)
+
+median(x)
+median(y)
+mean(x)
+mean(y)
 ```
 
 # Standard deviation
@@ -32,6 +36,11 @@ y = c(1, 2, 3, 4, 100000000)
 On average, how far away is a value from the mean?
 
 ```{r}
+x = c(1, 2, 3, 4, 5)
+sd(x)
+x - mean(x)
+
+sd(y)
 ```
 
 
