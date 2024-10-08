@@ -37,9 +37,12 @@ ggplot(d, aes(x=WrittenFrequencyOriginal, y=RTms)) +
 
 ```{r}
 l1 = lm(data=d, RTms ~ Familiarity)
-l2 = lm(data=d, RTms ~ Familiarity + LengthInLetters) # can it make the fit worse?
+l2 = lm(data=d, RTms ~ Familiarity + LengthInLetters) 
+l3 = lm(data=d, RTms ~ Familiarity + AgeSubject) 
+l4 = lm(data=d, RTms ~ Familiarity + AgeSubject + LengthInLetters) 
 
 anova(l1, l2)
+anova(l1, l3)
 ```
 
 # Logistic Regression
