@@ -23,23 +23,31 @@ First: what does runif() do?
 
 For you to try: play with "samples_drawn"....how is the standard error of the mean affected?
 
+runif -> random + uniform
+rnorm -> random + normal
+
 ```{r}
+runif(1000, 0, 100)
+hist(rnorm(100000, 0, 1))
+
 # uniform draws
-samples_drawn = 10
-a = tibble(i=rep(1:100000, samples_drawn))
+samples_drawn = 10000
+a = tibble(i=rep(1:10000, samples_drawn))
 a = mutate(a, value = runif(n(), 0, 10))
 
-filter(a, i == 1)
+filter(a, i == 1000)
 
 # take the means
 a.means = group_by(a, i) %>%
   summarize(mean.unif = mean(value),
             sd.unif = sd(value))
 
-ggplot(a.means, aes(x=mean.unif)) + geom_histogram()
-sd(a.means$mean.unif)
+ggplot(a.means, aes(x=mean.unif)) + geom_histogram() +
+  theme_classic(18)
+sd(a.means$mean.unif) # standard error of the mean
 
 
+# standard error:
 mean(a.means$sd.unif)/sqrt(samples_drawn)
 
 ```
@@ -57,11 +65,17 @@ sd(d$RTms)/sqrt(nrow(d))
 d$RT = d$RTms
 l = (lm(data=d, RT ~ Familiarity))
 
-d$Prediction = predict(l)
+d$Prediction = predict(l) # y = mx + b
 d$Residuals = d$RT - d$Prediction
 summary(d$Residuals)
 
 hist(d$Residuals)
+
+filter(d, Residuals > 400)
+
+# residuals should be normally distributed
+
+ggplot(d, aes(x=Familiarity, y=RT)) + geom_point()
 ```
 
 
@@ -90,7 +104,7 @@ hist(a, breaks=50)
 sd(a)
 summary(l)
 
--43.577/sd(a)
+-44.893/sd(a)
 
 a
 

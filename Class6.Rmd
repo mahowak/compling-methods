@@ -1,0 +1,74 @@
+---
+title: "Class6"
+author: "Kyle Mahowald"
+date: "2024-10-06"
+output: html_document
+---
+---
+title: "Class5"
+author: "Kyle Mahowald"
+date: "2024-10-03"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+d = read_csv("english.csv")
+d$RTms = exp(d$RTlexdec)
+d$WrittenFrequencyOriginal = exp(d$WrittenFrequency)
+
+ggplot(d, aes(x=WrittenFrequencyOriginal, y=RTms)) + 
+  geom_point() +
+  geom_smooth()
+```
+# Logs
+```{r}
+
+
+```
+
+# Multiple Regression, with likelihood ratio test (chi-squared test)
+
+```{r}
+l1 = lm(data=d, RTms ~ Familiarity)
+l2 = lm(data=d, RTms ~ Familiarity + LengthInLetters) # can it make the fit worse?
+
+anova(l1, l2)
+```
+
+# Logistic Regression
+
+Predict if a row is from a young or old subject
+
+```{r}
+d$AgeBinary = d$AgeSubject == "young"
+summary(glm(data=d,
+           family="binomial",
+           AgeBinary ~ WrittenFrequency))
+
+summary(glm(data=d,
+           family="binomial",
+           AgeBinary ~ RTms))
+
+logistic = function(x) {1 / (1 + exp(-x))}
+logit = function(p) {log(p/(1-p))}
+
+```
+
+# Zscores and Correlation
+https://istics.net/Correlations/
+
+A correlation.... a regression with standardized variables!
+
+```{r}
+d$Familiarity.Z = (d$Familiarity - mean(d$Familiarity))/sd(d$Familiarity)
+d$RTms.Z = (d$RTms - mean(d$RTms))/sd(d$RTms)
+summary(lm(data=d, RTms.Z ~ Familiarity.Z))
+cor(d$Familiarity.Z, d$RTms.Z)
+```
