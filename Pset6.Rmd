@@ -85,7 +85,8 @@ Using LogL1 as a predictor, run a linear regression predicting the number of Log
 Print the regression output, and below, write one sentence describing what it tells us.
 
 ```{r}
-# TODO
+l = lm(LogL2 ~ LogL1, data=d)
+summary(l)
 ```
 
 TODO

@@ -31,14 +31,22 @@ To learn about the other variables, read pages 21-22 [here](https://cran.r-proje
 Read in the data set dative.csv.
 
 ```{r}
-# TODO
+library(tidyverse)
+d = read_csv("dative.csv")
 ```
 
 ### 2
 
 Is this data tidy? Why or why not?
 
-TODO
+```{r}
+d
+group_by(d, Verb, RealizationOfRecipient) %>% 
+  select(Verb, RealizationOfRecipient) %>%
+  summarise(n=n()) %>%
+  pivot_wider(names_from=c("RealizationOfRecipient"),
+              values_from=c("n"))
+```
 
 ### 3
 
@@ -47,6 +55,7 @@ Let's think about LengthOfTheme and LengthOfRecipient (the number of words in th
 In one line of code, show the proportion of the time that LengthOfTheme is longer than LengthOfRecipient.
 
 ```{r}
+mean(d$LengthOfTheme > d$LengthOfRecipient)
 # TODO
 ```
 
@@ -54,8 +63,17 @@ In one line of code, show the proportion of the time that LengthOfTheme is longe
 
 Using group_by() and summarise(), make two new data frames: one showing the proportion of the time the RealizationOfRecipient is "NP" as a function of the LengthOfTheme, another as a function of LengthOfRecipient. Make a plot for each, where the proportion of the time RealizationOfRecipient is "NP" is the value on the y-axis. 
 
+Recipient is "John" in "Mary baked a cake for John."
+Mary baked John the teacher she had known for a long time and loved talking to a cake.
+Mary baked a cake for John the teacher she had known for a long time and loved talking to.
+
 ```{r}
-# TODO
+group_by(d, LengthOfRecipient) %>%
+  summarise(m=mean(RealizationOfRecipient == "NP"),
+            n=n()) %>%
+  ggplot(aes(x=LengthOfRecipient, y=m, size=n)) + 
+  geom_point() +
+  theme_classic(12) + ylim(0, 1) + ylab("Proportion NP")
 ```
 
 
@@ -76,3 +94,10 @@ Now, find the proportion of the time each verb is realized as NP, by grouping on
 Give an analysis that you find convincing that explores the effect of Modality (written or spoken) on the RealizationOfRecipient.
 
 Pick 1 or more variables (columns) that we did not discuss. For each one (or, if you want to get fancy, for combinations of them!) do some basic analyses of the sort we did above. And make some graphs. Based on the graphs and analyses, (a) describe the variables and what they mean (giving examples). And (b) discuss your analysis and conclusions. 
+
+```{r}
+group_by(d, Modality) %>%
+  summarise(mean.NP.Realization=mean(RealizationOfRecipient == "NP"),
+            n=n()) 
+
+```
